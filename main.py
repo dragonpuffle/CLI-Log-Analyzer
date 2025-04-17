@@ -1,0 +1,18 @@
+import argparse
+from file_analyzer import analyze
+
+
+def parse_args_and_execute():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('logfiles', nargs='+', help='list of log files')
+    parser.add_argument('--report', help='Name of the report')
+
+    args = parser.parse_args()
+    analyze(args.logfiles, args.report)
+
+
+
+
+
+if __name__ == '__main__':
+    parse_args_and_execute()
