@@ -21,7 +21,7 @@ def test_handlers_analysis_for_one_file():
     assert 'ERROR' not in test_result['/api/v1/users/']
 
 
-def test_handlers_analysis_for_all_files(capsys):
+def test_handlers_analysis_for_all_files():
     files = ['logs/app1.log', 'logs/app2.log', 'logs/app3.log']
     file_gens = {}
 
