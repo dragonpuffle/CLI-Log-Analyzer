@@ -1,15 +1,22 @@
+import os
 import re
 from typing import Dict, Iterator
 
-
 HANDLER_PATTERN = re.compile(r'(/\S+)')
+
 
 def get_analysis(files: list, report_type: str) -> None:
     file_gens = {}
     for file in files:
+        if not os.path.isfile(file):
+            raise FileNotFoundError(file)
         file_gens[file] = _read_file(file)
     if report_type == 'handlers':
         handlers_analysis(file_gens)
+
+    # if you would like to add new report type:
+    # if report_type == 'another':
+    #     another_analysis(file_gens)
 
 
 def _read_file(file: str) -> Iterator[str]:
@@ -18,7 +25,13 @@ def _read_file(file: str) -> Iterator[str]:
             yield line
 
 
-def handlers_analysis(file_gens: dict[str, Iterator[str]]) -> None:
+def handlers_analysis(file_gens: Dict[str, Iterator[str]]) -> None:
+    total_results, total_stats, total_request = handlers_analysis_for_all_files(file_gens)
+    handlers_output(total_results, total_stats, total_request)
+
+
+def handlers_analysis_for_all_files(file_gens: Dict[str, Iterator[str]]) -> tuple[
+    list[tuple[str, Dict[str, int]]], Dict[str, int], int]:
     total_results = {}
     total_stats = {'DEBUG': 0, 'INFO': 0, 'WARNING': 0, 'ERROR': 0, 'CRITICAL': 0}
     total_request = 0
@@ -32,10 +45,8 @@ def handlers_analysis(file_gens: dict[str, Iterator[str]]) -> None:
                 total_stats[level] = total_stats.get(level, 0) + value
                 total_request += value
     sorted_results = sorted(total_results.items(), key=lambda x: x[0])
-    print(sorted_results)
-    print(total_request)
-    print(total_stats)
-    # handlers_output(sorted_results, total_stats, total_request)
+
+    return sorted_results, total_stats, total_request
 
 
 def handlers_analysis_for_one_file(file_gen: Iterator[str]) -> Dict[str, Dict[str, int]]:
@@ -57,5 +68,14 @@ def handlers_analysis_for_one_file(file_gen: Iterator[str]) -> Dict[str, Dict[st
     return results
 
 
-def handlers_output(total_results: Dict[str, Dict[str, int]], total_stats: Dict[str, int], total_requests: int) -> None:
-    ...
+def handlers_output(total_results: list[tuple[str, Dict[str, int]]], total_stats: Dict[str, int],
+                    total_requests: int) -> None:
+    print('Total requests:', total_requests, '\n')
+
+    print(f"{'HANDLER':40}|{'DEBUG':15}|{'INFO':15}|{'WARNING':15}|{'ERROR':15}|{'CRITICAL':15}|")
+    for result in total_results:
+        handler, stats = result[0], result[1]
+        print(
+            f"{handler:40}|{stats['DEBUG']:15}|{stats['INFO']:15}|{stats['WARNING']:15}|{stats['ERROR']:15}|{stats['CRITICAL']:15}|")
+    print(
+        f"{'...':40}|{total_stats['DEBUG']:15}|{total_stats['INFO']:15}|{total_stats['WARNING']:15}|{total_stats['ERROR']:15}|{total_stats['CRITICAL']:15}|")
