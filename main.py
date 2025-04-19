@@ -1,15 +1,14 @@
 import argparse
-from file_analyzer import handlers_analysis
+from file_analyzer import get_analysis
 
 
 def parse_args_and_execute() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('logfiles', nargs='+', help='list of log files')
-    parser.add_argument('--report', required=True, help='Type of the report')
+    parser.add_argument('--report', default='handlers', help='Type of the report')
 
     args = parser.parse_args()
-    if args.report == 'handlers':
-        handlers_analysis(args.logfiles)
+    get_analysis(args.logfiles, args.report)
 
 
 if __name__ == '__main__':
